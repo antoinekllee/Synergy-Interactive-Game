@@ -1,20 +1,25 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using TMPro; 
+using UnityEngine.UI;
+using static AgentClass;
 
 public class DragDrop : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler
 {  
     [SerializeField] private Transform defaultParent = null; 
     [SerializeField] private Canvas canvas = null; 
     [SerializeField] private RectTransform dragBounds = null;
+    public Image image = null;
 
     [Space (8)]
-    public string agentName = "Agent 1"; 
-    public int gender = 0; 
-    public int sn = 0; 
-    public int tf = 0; 
-    public int ei = 0; 
-    public int pj = 0; 
+    // public string agentName = "Agent 1"; 
+    // public int gender = 0; 
+    // public int sn = 0; 
+    // public int tf = 0; 
+    // public int ei = 0; 
+    // public int pj = 0; 
+
+    public Agent agent = null; 
 
     [Space (8)]
     [SerializeField] private TextMeshProUGUI nameText = null; 
@@ -29,26 +34,41 @@ public class DragDrop : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDrag
     [SerializeField] private TextMeshProUGUI eiSubtext = null;
     [SerializeField] private TextMeshProUGUI pjSubtext = null;
 
-    private RectTransform rectTransform; 
-    private CanvasGroup canvasGroup; 
+    // Store the start position of the item so that it can be returned to its original position if it is dropped outside of the drag bounds.
+    private Vector3 startPosition = Vector3.zero;
+
+    private RectTransform rectTransform = null; 
+    private CanvasGroup canvasGroup = null; 
 
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
         canvasGroup = GetComponent<CanvasGroup>();
+
+        if (!image)
+            image = GetComponent<Image>();
+
     }
 
-    public void UpdateStats (string name)
+    private void Start()
     {
-        agentName = name; 
+        transform.SetParent(defaultParent); 
+        startPosition = rectTransform.localPosition;
+    }
 
-        string genderStr = gender == 0 ? "Male" : "Female"; 
-        nameText.text = agentName + " (" + genderStr + ")"; 
-        
-        sn = Random.Range(-10, 10); 
-        tf = Random.Range(-10, 10); 
-        ei = Random.Range(-10, 10); 
-        pj = Random.Range(-10, 10); 
+    public void UpdateStats (string name, Color bgColour)
+    {
+        image.color = bgColour;
+
+        agent = new Agent(name); 
+
+        string genderStr = agent.gender == 0 ? "Male" : "Female"; 
+        nameText.text = agent.name + " (" + genderStr + ")"; 
+
+        int sn = (int)(agent.sn * 10f); 
+        int tf = (int)(agent.tf * 10f); 
+        int ei = (int)(agent.ei * 10f); 
+        int pj = (int)(agent.pj * 10f); 
 
         snText.text = sn.ToString();
         tfText.text = tf.ToString();
@@ -113,5 +133,11 @@ public class DragDrop : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDrag
     {
         canvasGroup.alpha = 1f;
         canvasGroup.blocksRaycasts = true;
+    }
+
+    public void ResetPosition()
+    {
+        transform.SetParent(defaultParent);
+        rectTransform.localPosition = startPosition;
     }
 }
